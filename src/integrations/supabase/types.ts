@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_login_attempts: {
+        Row: {
+          attempted_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_sessions: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          last_activity: string | null
+          session_token: string
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_activity?: string | null
+          session_token: string
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_activity?: string | null
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_sessions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          admin_role: Database["public"]["Enums"]["admin_role"]
+          created_at: string
+          id: string
+          last_login_at: string | null
+          locked_until: string | null
+          login_attempts: number | null
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_role?: Database["public"]["Enums"]["admin_role"]
+          created_at?: string
+          id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_role?: Database["public"]["Enums"]["admin_role"]
+          created_at?: string
+          id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_categories: {
         Row: {
           created_at: string
@@ -213,9 +314,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_admin_rate_limit: {
+        Args: { email_input: string; ip_input?: string }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: { email_input: string; ip_input?: string }
         Returns: boolean
+      }
+      cleanup_expired_admin_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      log_admin_login_attempt: {
+        Args: {
+          email_input: string
+          ip_input?: string
+          success_input?: boolean
+          user_agent_input?: string
+        }
+        Returns: undefined
       }
       log_login_attempt: {
         Args: {
@@ -227,6 +345,7 @@ export type Database = {
       }
     }
     Enums: {
+      admin_role: "super_admin" | "admin" | "moderator"
       user_role: "user"
     }
     CompositeTypes: {
@@ -355,6 +474,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_role: ["super_admin", "admin", "moderator"],
       user_role: ["user"],
     },
   },

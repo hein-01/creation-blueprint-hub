@@ -12,6 +12,10 @@ import FindShops from "./pages/FindShops";
 import AddBusiness from "./pages/AddBusiness";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminSignup from "./pages/admin/AdminSignup";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCallback from "./pages/admin/AdminCallback";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +34,10 @@ const App = () => (
           <Route path="/auth/signin" element={<Auth />} />
           <Route path="/auth/signup" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/signup" element={<AdminSignup />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/callback" element={<AdminCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
