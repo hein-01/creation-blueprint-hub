@@ -28,8 +28,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
     password: "",
     confirmPassword: "",
     displayName: "",
-    role: "regular_user" as "regular_user" | "business_owner",
-    businessName: "",
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -101,9 +99,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
           throw new Error("Display name is required");
         }
 
-        if (formData.role === 'business_owner' && !formData.businessName.trim()) {
-          throw new Error("Business name is required for business accounts");
-        }
 
         // Clean up existing state
         cleanupAuthState();
@@ -122,9 +117,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              role: formData.role,
+              role: 'user',
               display_name: formData.displayName,
-              business_name: formData.businessName || null,
             }
           }
         });
@@ -220,57 +214,21 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {isSignUp && (
-                <>
-                  <div>
-                    <Label htmlFor="role">Account Type</Label>
-                    <Select 
-                      value={formData.role} 
-                      onValueChange={(value) => handleInputChange("role", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select account type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="regular_user">Regular User</SelectItem>
-                        <SelectItem value="business_owner">Business Owner</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div>
+                  <Label htmlFor="displayName">Display Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="displayName"
+                      type="text"
+                      value={formData.displayName}
+                      onChange={(e) => handleInputChange("displayName", e.target.value)}
+                      placeholder="Enter your display name"
+                      className="pl-10"
+                      required
+                    />
                   </div>
-
-                  <div>
-                    <Label htmlFor="displayName">Display Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="displayName"
-                        type="text"
-                        value={formData.displayName}
-                        onChange={(e) => handleInputChange("displayName", e.target.value)}
-                        placeholder="Enter your display name"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {formData.role === 'business_owner' && (
-                    <div>
-                      <Label htmlFor="businessName">Business Name</Label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="businessName"
-                          type="text"
-                          value={formData.businessName}
-                          onChange={(e) => handleInputChange("businessName", e.target.value)}
-                          placeholder="Enter your business name"
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
 
               <div>

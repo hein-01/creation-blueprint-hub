@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UserProfile {
   id: string;
   user_id: string;
-  role: 'regular_user' | 'business_owner';
+  role: 'user';
   display_name: string | null;
   avatar_url: string | null;
   phone: string | null;
@@ -114,7 +114,6 @@ export function useAuth() {
     loading,
     updateProfile,
     signOut,
-    isBusinessOwner: profile?.role === 'business_owner',
-    isRegularUser: profile?.role === 'regular_user'
+    isUser: profile?.role === 'user'
   };
 }
