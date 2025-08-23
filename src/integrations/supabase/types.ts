@@ -278,6 +278,7 @@ export type Database = {
           id: string
           image_url: string
           name: string
+          product_images: string[]
           rating: number
           state: string
           website: string
