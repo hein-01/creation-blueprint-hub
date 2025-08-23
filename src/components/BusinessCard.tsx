@@ -44,11 +44,11 @@ export const BusinessCard = ({ business }: BusinessCardProps) => {
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
       {business.image_url && (
-        <div className="relative">
+        <div className="relative w-full h-[200px] overflow-hidden">
           <img
             src={business.image_url}
             alt={business.name}
-            className="w-full h-48 object-cover rounded-t-lg"
+            className="w-[320px] h-[200px] object-cover rounded-t-lg"
           />
         </div>
       )}
