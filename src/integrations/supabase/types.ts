@@ -103,54 +103,75 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
+          business_options: string[] | null
           category: string | null
           city: string | null
           created_at: string
           description: string | null
           email: string | null
+          facebook_page: string | null
           id: string
           image_url: string | null
+          license_expired_date: string | null
           name: string
           owner_id: string
           phone: string | null
+          product_images: string[] | null
+          products_catalog: string | null
           rating: number | null
+          starting_price: string | null
           state: string | null
+          tiktok_url: string | null
           updated_at: string
           website: string | null
           zip_code: string | null
         }
         Insert: {
           address?: string | null
+          business_options?: string[] | null
           category?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          facebook_page?: string | null
           id?: string
           image_url?: string | null
+          license_expired_date?: string | null
           name: string
           owner_id: string
           phone?: string | null
+          product_images?: string[] | null
+          products_catalog?: string | null
           rating?: number | null
+          starting_price?: string | null
           state?: string | null
+          tiktok_url?: string | null
           updated_at?: string
           website?: string | null
           zip_code?: string | null
         }
         Update: {
           address?: string | null
+          business_options?: string[] | null
           category?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          facebook_page?: string | null
           id?: string
           image_url?: string | null
+          license_expired_date?: string | null
           name?: string
           owner_id?: string
           phone?: string | null
+          product_images?: string[] | null
+          products_catalog?: string | null
           rating?: number | null
+          starting_price?: string | null
           state?: string | null
+          tiktok_url?: string | null
           updated_at?: string
           website?: string | null
           zip_code?: string | null

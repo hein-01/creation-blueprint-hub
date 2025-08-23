@@ -170,14 +170,13 @@ export default function ListBusiness() {
           zip_code: formData.zipCode,
           website: formData.website,
           image_url: logoUrl || null,
-          // Store additional data in JSON fields (you may need to add these columns)
-          // facebook_page: formData.facebookPage,
-          // tiktok_url: formData.tiktokUrl,
-          // starting_price: formData.startingPrice,
-          // business_options: formData.options,
-          // products_catalog: formData.productsCatalog,
-          // license_expired_date: formData.licenseExpiredDate,
-          // product_images: imageUrls
+          facebook_page: formData.facebookPage || null,
+          tiktok_url: formData.tiktokUrl || null,
+          starting_price: formData.startingPrice || null,
+          business_options: formData.options.length > 0 ? formData.options : null,
+          products_catalog: formData.productsCatalog || null,
+          license_expired_date: formData.licenseExpiredDate || null,
+          product_images: imageUrls.length > 0 ? imageUrls : null
         });
 
       if (error) throw error;
