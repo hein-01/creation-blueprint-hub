@@ -19,24 +19,14 @@ export function useAdminAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchAdminProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Defer Supabase calls with setTimeout to prevent deadlock
           setTimeout(() => {
             fetchAdminProfile(session.user.id);
           }, 0);
@@ -47,6 +37,17 @@ export function useAdminAuth() {
       }
     );
 
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchAdminProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -56,7 +57,7 @@ export function useAdminAuth() {
         .from('admin_users')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching admin profile:', error);
@@ -103,8 +104,8 @@ export function useAdminAuth() {
 
       await supabase.auth.signOut({ scope: 'global' });
       
-      // Force page reload for clean state
-      window.location.href = '/admin/login';
+      // Force redirect to admin login
+      window.location.href = '/@admin/login';
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -135,6 +136,33 @@ export function useAdminAuth() {
     }
   };
 
+  const provisionAdminUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .insert({
+          user_id: userId,
+          admin_role: 'admin',
+          two_factor_enabled: false
+        });
+
+      if (error) throw error;
+      
+      // Also create profile entry
+      await supabase
+        .from('profiles')
+        .upsert({
+          user_id: userId,
+          role: 'admin'
+        });
+
+      await fetchAdminProfile(userId);
+    } catch (error) {
+      console.error('Error provisioning admin user:', error);
+      throw error;
+    }
+  };
+
   return {
     user,
     session,
@@ -144,6 +172,7 @@ export function useAdminAuth() {
     signOut,
     checkAdminRateLimit,
     logAdminLoginAttempt,
+    provisionAdminUser,
     isSuperAdmin: adminProfile?.admin_role === 'super_admin',
     isAdmin: adminProfile?.admin_role === 'admin',
     isModerator: adminProfile?.admin_role === 'moderator',

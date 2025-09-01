@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Shield, QrCode, Key } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { Shield, Key, QrCode } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 export default function TwoFactorSetup() {
   const { adminProfile, updateAdminProfile } = useAdminAuth();
   const { toast } = useToast();
+  
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -26,27 +31,25 @@ export default function TwoFactorSetup() {
     try {
       setLoading(true);
       
-      // Generate secret using speakeasy
-      const speakeasy = await import('speakeasy');
-      const secret = speakeasy.generateSecret({
-        name: `WellFinds Admin (${adminProfile?.user_id})`,
-        issuer: 'WellFinds',
-        length: 32
+      // Generate secret
+      const newSecret = speakeasy.generateSecret({
+        name: `Admin Portal (${adminProfile?.user_id})`,
+        issuer: 'Admin Portal',
+        length: 32,
       });
 
-      setSecret(secret.base32);
+      setSecret(newSecret.base32);
 
       // Generate QR code
-      const qrcode = await import('qrcode');
-      const qrCodeDataUrl = await qrcode.toDataURL(secret.otpauth_url);
-      setQrCodeUrl(qrCodeDataUrl);
+      const qrUrl = await QRCode.toDataURL(newSecret.otpauth_url);
+      setQrCodeUrl(qrUrl);
       
       setStep('verify');
     } catch (error) {
       console.error('Error generating 2FA secret:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate 2FA secret",
+        title: "Setup Error",
+        description: "Failed to generate 2FA secret. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -58,48 +61,50 @@ export default function TwoFactorSetup() {
     if (!verificationCode || verificationCode.length !== 6) {
       toast({
         title: "Invalid Code",
-        description: "Please enter a 6-digit verification code",
+        description: "Please enter a 6-digit verification code.",
         variant: "destructive",
       });
       return;
     }
 
+    setLoading(true);
+
     try {
-      setLoading(true);
-      
       // Verify the token
-      const speakeasy = await import('speakeasy');
       const verified = speakeasy.totp.verify({
-        secret: secret,
+        secret,
         encoding: 'base32',
         token: verificationCode,
-        window: 2
+        window: 2 // Allow some time drift
       });
 
       if (!verified) {
-        throw new Error("Invalid verification code");
+        toast({
+          title: "Invalid Code",
+          description: "The verification code is incorrect. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Save the secret and enable 2FA
+      // Save to database
       await updateAdminProfile({
         two_factor_enabled: true,
         two_factor_secret: secret
       });
 
       toast({
-        title: "Success",
-        description: "Two-factor authentication has been enabled successfully!",
+        title: "2FA Enabled",
+        description: "Two-factor authentication has been successfully enabled for your account.",
       });
 
       setStep('setup');
       setVerificationCode("");
-      setQrCodeUrl("");
-      setSecret("");
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error enabling 2FA:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to enable 2FA",
+        title: "Setup Error",
+        description: "Failed to enable 2FA. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -108,23 +113,23 @@ export default function TwoFactorSetup() {
   };
 
   const disable2FA = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
-      
       await updateAdminProfile({
         two_factor_enabled: false,
         two_factor_secret: null
       });
 
       toast({
-        title: "Success",
-        description: "Two-factor authentication has been disabled",
+        title: "2FA Disabled",
+        description: "Two-factor authentication has been disabled for your account.",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error disabling 2FA:', error);
       toast({
         title: "Error",
-        description: "Failed to disable 2FA",
+        description: "Failed to disable 2FA. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -136,15 +141,22 @@ export default function TwoFactorSetup() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
-            <span>Two-Factor Authentication Enabled</span>
+            Two-Factor Authentication
           </CardTitle>
+          <CardDescription>
+            2FA is currently enabled for your account.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Your account is protected with two-factor authentication.
-          </p>
+          <Alert>
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              Your account is protected with two-factor authentication.
+            </AlertDescription>
+          </Alert>
+          
           <Button 
             variant="destructive" 
             onClick={disable2FA}
@@ -160,52 +172,70 @@ export default function TwoFactorSetup() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Key className="h-5 w-5" />
-          <span>Setup Two-Factor Authentication</span>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Two-Factor Authentication
         </CardTitle>
+        <CardDescription>
+          Add an extra layer of security to your admin account.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {step === 'setup' && (
-          <div className="space-y-4">
-            <p className="text-muted-foreground">
-              Enhance your account security by enabling two-factor authentication.
-            </p>
-            <Button onClick={generateSecret} disabled={loading}>
-              {loading ? "Generating..." : "Setup 2FA"}
+      <CardContent className="space-y-4">
+        {step === 'setup' ? (
+          <>
+            <Alert>
+              <AlertDescription>
+                Set up 2FA using an authenticator app like Google Authenticator, Authy, or 1Password.
+              </AlertDescription>
+            </Alert>
+            
+            <Button 
+              onClick={generateSecret} 
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Setting up..." : "Set Up 2FA"}
             </Button>
-          </div>
-        )}
-
-        {step === 'verify' && (
-          <div className="space-y-4">
+          </>
+        ) : (
+          <div className="space-y-6">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Scan this QR code with your authenticator app:
-              </p>
+              <h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                <QrCode className="h-5 w-5" />
+                Scan QR Code
+              </h3>
               {qrCodeUrl && (
-                <div className="flex justify-center mb-4">
-                  <img src={qrCodeUrl} alt="2FA QR Code" className="border rounded-lg" />
-                </div>
+                <img 
+                  src={qrCodeUrl} 
+                  alt="2FA QR Code" 
+                  className="mx-auto border rounded-lg p-2 bg-white"
+                />
               )}
-              <p className="text-xs text-muted-foreground mb-4">
-                Or enter this secret manually: <code className="bg-muted px-2 py-1 rounded">{secret}</code>
-              </p>
             </div>
 
-            <div>
-              <Label htmlFor="verificationCode">Verification Code</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Manual Entry Key
+              </Label>
+              <div className="p-3 bg-muted rounded-md font-mono text-sm break-all">
+                {secret}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="verification">Verification Code</Label>
               <Input
-                id="verificationCode"
+                id="verification"
                 type="text"
-                placeholder="Enter 6-digit code"
+                placeholder="Enter 6-digit code from your app"
                 value={verificationCode}
                 onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 maxLength={6}
               />
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex gap-2">
               <Button 
                 onClick={verifyAndEnable2FA}
                 disabled={loading || verificationCode.length !== 6}
@@ -213,9 +243,13 @@ export default function TwoFactorSetup() {
               >
                 {loading ? "Verifying..." : "Verify & Enable"}
               </Button>
+              
               <Button 
                 variant="outline" 
-                onClick={() => setStep('setup')}
+                onClick={() => {
+                  setStep('setup');
+                  setVerificationCode("");
+                }}
                 disabled={loading}
               >
                 Cancel

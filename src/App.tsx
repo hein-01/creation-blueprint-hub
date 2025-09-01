@@ -12,10 +12,8 @@ import FindShops from "./pages/FindShops";
 import ListBusiness from "./pages/ListBusiness";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminSignup from "./pages/admin/AdminSignup";
+import AdminAuth from "./pages/admin/AdminAuth";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminCallback from "./pages/admin/AdminCallback";
 import ListAndGetPOS from "./pages/ListAndGetPOS";
 import UserDashboard from "./pages/UserDashboard";
 
@@ -36,10 +34,9 @@ const App = () => (
           <Route path="/auth/signin" element={<Auth />} />
           <Route path="/auth/signup" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/signup" element={<AdminSignup />} />
+          <Route path="/@admin/login" element={<AdminAuth />} />
+          <Route path="/@admin/signup" element={<AdminAuth />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/callback" element={<AdminCallback />} />
           <Route path="/list-&-get-pos-website" element={<ListAndGetPOS />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
