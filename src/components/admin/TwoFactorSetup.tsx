@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, QrCode, Key } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
@@ -71,14 +72,14 @@ export default function TwoFactorSetup() {
 
     try {
       // Verify the token
-      const verified = speakeasy.totp.verify({
-        secret,
-        encoding: 'base32',
-        token: verificationCode,
-        window: 2 // Allow some time drift
+      const { data: verificationResult } = await supabase.functions.invoke('verify-2fa', {
+        body: {
+          secret,
+          token: verificationCode
+        }
       });
 
-      if (!verified) {
+      if (!verificationResult?.valid) {
         toast({
           title: "Invalid Code",
           description: "The verification code is incorrect. Please try again.",

@@ -126,19 +126,15 @@ export default function AdminAuth() {
       }
 
       if (adminUser.two_factor_enabled && twoFactorCode) {
-        // Verify 2FA code
-        const response = await fetch('/api/verify-2fa', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        // Verify 2FA code using Supabase edge function
+        const { data: verificationResult } = await supabase.functions.invoke('verify-2fa', {
+          body: {
             secret: adminUser.two_factor_secret,
             token: twoFactorCode
-          })
+          }
         });
 
-        if (!response.ok) {
+        if (!verificationResult?.valid) {
           await logLoginAttempt(email, false);
           throw new Error("Invalid 2FA code");
         }

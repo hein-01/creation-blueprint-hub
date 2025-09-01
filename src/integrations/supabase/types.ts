@@ -334,6 +334,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: undefined
       }
+      verify_totp_token: {
+        Args: { secret_key: string; token_input: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
